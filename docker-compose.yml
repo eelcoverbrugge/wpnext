@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+    volumes:
+      - wordpress:/var/www/html
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db:/var/lib/mysql
+
+  web:
+    build:
+      context: . #specifying where we want all the files and folders for this image to be pulled from
+      dockerfile: Dockerfile.dev #location of dockerfile to be used
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
+      - .:/app #the . is the current folder outside the container: the /app folder is inside the container
+
+volumes:
+  wordpress:
+  db:
+  web:
