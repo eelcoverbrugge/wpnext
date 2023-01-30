@@ -1,46 +1,28 @@
 import React from 'react'
-
-// export default class SomePage extends React.Component {
-//     constructor(props) {
-//         super(props);
-//         console.log('This outputs on the client-side AND server-side');
-//     }
-//
-//     static async getInitialProps() {
-//         console.log('HELLO');
-//     }
-//
-//     componentDidMount() {
-//         console.log('This outputs on the client-side');
-//     }
-//
-//     render() {
-//         return <div>test</div>
-//     }
-// }
-import axios from 'axios'
 import Link from "next/link";
 
-const SomePage = ({ posts, mood }) => {
-    console.log(mood)
+const SomePage = ({ data }) => {
     return (
         <div>
             <Link href="/somepage">Somepage</Link>
             <Link href="/test">Test</Link>
-            {posts.map(post => (
-                <li key={post.id}>{post.title}</li>
-            ))}
+            <ul>
+                {data.map((item, i) => (
+                    <div key={i}>{item.title}</div>
+                ))}
+            </ul>
         </div>
     )
 }
 
-SomePage.getInitialProps = async () => {
-    const response = await axios.get("https://jsonplaceholder.typicode.com/posts")
-    const {data} = response.data
-    console.log('response.data: '+response.data)
+export async function getServerSideProps() {
+    const res = await fetch(`https://jsonplaceholder.typicode.com/posts`)
+    const data = await res.json()
+
     return {
-        posts: response.data,
-        mood: 'HAPPY'
+        props: {
+            data
+        }
     }
 }
 
