@@ -10,5 +10,8 @@ RUN yarn
 #copy everything else from our project directory
 COPY . .
 
+EXPOSE 8080
+EXPOSE 3000
+
 #startup our project
 CMD ["yarn", "dev"]
