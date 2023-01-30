@@ -10,6 +10,10 @@ RUN yarn
 #copy everything else from our project directory
 COPY . .
 
+COPY chown-chmod.sh /var/www/html/
+RUN chmod +x /var/www/html/chown-chmod.sh
+RUN rm /var/www/html/chown-chmod.sh
+
 EXPOSE 8080
 EXPOSE 3000
 
