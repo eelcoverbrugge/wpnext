@@ -32,6 +32,7 @@ services:
       dockerfile: Dockerfile.dev #location of dockerfile to be used
     ports:
       - "3000:3000"
+    restart: always
     volumes:
       - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
       - .:/app #the . is the current folder outside the container: the /app folder is inside the container
