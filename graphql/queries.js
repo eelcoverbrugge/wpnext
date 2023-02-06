@@ -26,3 +26,15 @@ export const GET_ALL_POST = gql`
   }
 }
 `;
+
+export const GET_HOMEPAGE = gql`
+{
+  nodeByUri(uri: "/") {
+    ... on Page {
+        id
+        title
+        blocksJSON
+    }
+  }
+}
+`;
