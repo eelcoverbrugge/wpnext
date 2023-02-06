@@ -2,31 +2,33 @@ version: '3'
 
 services:
 
-  nginx:
-    container_name: wpnext_nginx
-    restart: always
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile.dev
-    depends_on:
-      - client
-    ports:
-      - "3050:80"
+#  nginx:
+#    container_name: wpnext_nginx
+#    restart: always
+#    build:
+#      context: ./nginx
+#      dockerfile: Dockerfile.dev
+#    depends_on:
+#      - client
+#    ports:
+#      - "3050:80"
 
   api:
     container_name: wpnext_api
     image: wordpress
     restart: always
-#    ports:
-#      - "8080:80"
+    ports:
+      - "8080:80"
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
       WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME','http://localhost:3050/api');
-        define('WP_SITEURL','http://localhost:3050/api');
+        define('WP_HOME','http://localhost:8080');
+        define('WP_SITEURL','http://localhost:8080');
+#        define('WP_HOME','http://localhost:3050/api');
+#        define('WP_SITEURL','http://localhost:3050/api');
     volumes:
       - api:/var/www/html
       - ./plugins:/var/www/html/wp-content/plugins
@@ -51,8 +53,8 @@ services:
     build:
       context: . #specifying where we want all the files and folders for this image to be pulled from
       dockerfile: Dockerfile.dev #location of dockerfile to be used
-#    ports:
-#      - "3000:3000"
+    ports:
+      - "3000:3000"
     restart: always
     environment:
       - WDS_SOCKET_PORT=0
