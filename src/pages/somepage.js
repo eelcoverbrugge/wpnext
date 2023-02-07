@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import {useQuery} from "@apollo/client";
-import {sGET_HOMEPAGE} from "../../graphql/queries";
+import {GET_HOMEPAGE} from "../../graphql/queries";
 import {BlockRenderer} from "@/components/BlockRenderer";
 import {cleanAndTransformBlocks} from "@/utils/cleanAndTransformBlocks";
 
