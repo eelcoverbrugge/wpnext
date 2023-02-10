@@ -4,7 +4,7 @@ import {
 } from "@apollo/client";
 
 const client = new ApolloClient({
-    uri: "http://api-wpnext.local",
+    uri: "http://api-wpnext.local/graphql",
     cache: new InMemoryCache(),
 });
 

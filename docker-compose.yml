@@ -2,23 +2,26 @@ version: '3'
 
 services:
 
-  proxy:
-    container_name: wpnext_proxy
-    image: jwilder/nginx-proxy
-    ports:
-      - "80:80"
-      - "443:443"
+  db:
+    container_name: wpnext_database
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - db:/var/lib/mysql
 
   api:
     container_name: wpnext_api
-    image: wordpress
+    image: wordpress:6.1.1-php8.0
+    restart: always
     expose:
-      - "8080"
+      - 8080
     environment:
-      VIRTUAL_PORT: 9090
-      VIRTUAL_HOST: api-wpnext.local,www.api-wpnext.local
+      VIRTUAL_HOST: api-wpnext.local, www.api-wpnext.local
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
@@ -34,28 +37,17 @@ services:
     depends_on:
       - db
 
-  db:
-    container_name: wpnext_database
-    image: mysql:5.7
-    environment:
-      MYSQL_DATABASE: exampledb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db:/var/lib/mysql
-
   client:
     container_name: wpnext_client
     build:
       context: . #specifying where we want all the files and folders for this image to be pulled from
       dockerfile: Dockerfile.dev #location of dockerfile to be used
+    restart: always
     expose:
-      - "3000"
+      - 3000
     environment:
-      - WDS_SOCKET_PORT=0
-      - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=wpnext.local,www.wpnext.local
+      VIRTUAL_HOST: wpnext.local, www.wpnext.local
+      WDS_SOCKET_PORT: 0
     volumes:
       - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
       - .:/app #the . is the current folder outside the container: the /app folder is inside the container
@@ -63,6 +55,11 @@ services:
       - api
 
 volumes:
-  api:
   db:
+  api:
   client:
+
+networks:
+  default:
+    external:
+      name: nginx-proxy

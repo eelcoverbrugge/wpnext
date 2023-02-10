@@ -3,6 +3,7 @@ import {useQuery} from "@apollo/client";
 import {GET_HOMEPAGE} from "../../graphql/queries";
 import {BlockRenderer} from "@/components/BlockRenderer";
 import {cleanAndTransformBlocks} from "@/utils/cleanAndTransformBlocks";
+import Link from "next/link";
 
 const SomePage = () => {
     const [blocks, setBlocks] = useState([]);
@@ -19,6 +20,7 @@ const SomePage = () => {
     if (error) return <p>Error : {error.message}</p>;
     return (
         <>
+            <Link href='/'>Home</Link>
             {blocks.map(({ id, name }) => (
                 <div key={id}>
                     <h3>{name}</h3>
