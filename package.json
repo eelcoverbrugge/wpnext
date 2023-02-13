@@ -20,6 +20,7 @@
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.5",
     "graphql": "^16.6.0",
+    "graphql-tag": "^2.12.6",
     "html-react-parser": "^3.0.4",
     "next": "13.1.5",
     "nextjs-cors": "^2.1.2",

@@ -2,15 +2,18 @@ version: "3"
 
 services:
   nginx-proxy:
+    restart: always
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
       - "80:80"
+    networks:
+      - nginxproxy
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ./default.conf/
+#      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
 
 networks:
-  default:
+  nginxproxy:
     external:
-      name: nginx-proxy
+      name: nginxproxy

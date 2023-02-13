@@ -2,33 +2,19 @@ version: '3'
 
 services:
 
-  db:
-    container_name: wpnext_database
-    image: mysql:5.7
-    restart: always
-    environment:
-      MYSQL_DATABASE: exampledb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db:/var/lib/mysql
-
   api:
     container_name: wpnext_api
+    hostname: api.wpnext.local
     image: wordpress:6.1.1-php8.0
-    restart: always
-    expose:
-      - 8080
+    restart: unless-stopped
     environment:
-      VIRTUAL_HOST: api-wpnext.local, www.api-wpnext.local
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
       WORDPRESS_DB_NAME: exampledb
       WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME','http://api-wpnext.local');
-        define('WP_SITEURL','http://api-wpnext.local');
+        define('WP_HOME','http://api.wpnext.local');
+        define('WP_SITEURL','http://api.wpnext.local');
     volumes:
       - api:/var/www/html
       - ./plugins:/var/www/html/wp-content/plugins
@@ -36,9 +22,46 @@ services:
       - ./upload.ini:/usr/local/etc/php/conf.d/uploads.ini
     depends_on:
       - db
+    networks:
+      - wordpress
+
+  nginx:
+    container_name: wpnext_nginx
+    hostname: api.wpnext.local
+    image: nginx:1.20-alpine
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: api.wpnext.local
+      VIRTUAL_PORT: 8080
+    networks:
+      - nginxproxy
+      - wordpress
+    depends_on:
+      - client
+    volumes:
+      - ./nginx/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/wpnext.conf:ro
+
+  db:
+    container_name: wpnext_database
+    hostname: db.wpnext.local
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: db.wpnext.local
+      VIRTUAL_PORT: 3306
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - nginxproxy
+      - wordpress
 
   client:
     container_name: wpnext_client
+    hostname: wpnext.local
     build:
       context: . #specifying where we want all the files and folders for this image to be pulled from
       dockerfile: Dockerfile.dev #location of dockerfile to be used
@@ -47,12 +70,15 @@ services:
       - 3000
     environment:
       VIRTUAL_HOST: wpnext.local, www.wpnext.local
+      VIRTUAL_PORT: 3000
       WDS_SOCKET_PORT: 0
     volumes:
       - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
       - .:/app #the . is the current folder outside the container: the /app folder is inside the container
     depends_on:
       - api
+    networks:
+      - wordpress
 
 volumes:
   db:
@@ -60,6 +86,13 @@ volumes:
   client:
 
 networks:
-  default:
+  wordpress:
     external:
-      name: nginx-proxy
+      name: wordpress
+  nginxproxy:
+    external:
+      name: nginxproxy
+
+#  default:
+#    external:
+#      name: nginx-proxy
