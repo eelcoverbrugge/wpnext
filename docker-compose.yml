@@ -1,13 +1,44 @@
 version: '3'
 
 services:
+  proxy:
+    container_name: wpnext_proxy
+    image: nginxproxy/nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - client
+
+  client:
+    container_name: wpnext_client
+    build:
+      context: . #specifying where we want all the files and folders for this image to be pulled from
+      dockerfile: Dockerfile.dev #location of dockerfile to be used
+    restart: unless-stopped
+    expose:
+      - 3000
+    environment:
+      VIRTUAL_HOST: wpnext.local
+      VIRTUAL_PORT: 3000
+      WDS_SOCKET_PORT: 0
+    volumes:
+      - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
+      - .:/app #the . is the current folder outside the container: the /app folder is inside the container
+    depends_on:
+      - api
 
   api:
     container_name: wpnext_api
-    hostname: api.wpnext.local
     image: wordpress:6.1.1-php8.0
     restart: unless-stopped
+    expose:
+      - 80
     environment:
+      VIRTUAL_HOST: api.wpnext.local
+      VIRTUAL_PORT: 80
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
@@ -22,77 +53,20 @@ services:
       - ./upload.ini:/usr/local/etc/php/conf.d/uploads.ini
     depends_on:
       - db
-    networks:
-      - wordpress
-
-  nginx:
-    container_name: wpnext_nginx
-    hostname: api.wpnext.local
-    image: nginx:1.20-alpine
-    restart: unless-stopped
-    environment:
-      VIRTUAL_HOST: api.wpnext.local
-      VIRTUAL_PORT: 8080
-    networks:
-      - nginxproxy
-      - wordpress
-    depends_on:
-      - client
-    volumes:
-      - ./nginx/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/wpnext.conf:ro
 
   db:
     container_name: wpnext_database
-    hostname: db.wpnext.local
     image: mysql:5.7
     restart: unless-stopped
     environment:
-      VIRTUAL_HOST: db.wpnext.local
-      VIRTUAL_PORT: 3306
       MYSQL_DATABASE: exampledb
       MYSQL_USER: exampleuser
       MYSQL_PASSWORD: examplepass
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
-    networks:
-      - nginxproxy
-      - wordpress
-
-  client:
-    container_name: wpnext_client
-    hostname: wpnext.local
-    build:
-      context: . #specifying where we want all the files and folders for this image to be pulled from
-      dockerfile: Dockerfile.dev #location of dockerfile to be used
-    restart: always
-    expose:
-      - 3000
-    environment:
-      VIRTUAL_HOST: wpnext.local, www.wpnext.local
-      VIRTUAL_PORT: 3000
-      WDS_SOCKET_PORT: 0
-    volumes:
-      - /app/node_modules #this means "do not try to map a folder up against node_modules inside the container"
-      - .:/app #the . is the current folder outside the container: the /app folder is inside the container
-    depends_on:
-      - api
-    networks:
-      - wordpress
 
 volumes:
-  db:
-  api:
   client:
-
-networks:
-  wordpress:
-    external:
-      name: wordpress
-  nginxproxy:
-    external:
-      name: nginxproxy
-
-#  default:
-#    external:
-#      name: nginx-proxy
+  api:
+  db:
